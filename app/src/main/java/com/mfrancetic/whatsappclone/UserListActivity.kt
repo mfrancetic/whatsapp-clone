@@ -69,7 +69,7 @@ class UserListActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        userListAdapter = UserListAdapter(this, userEmails)
+        userListAdapter = UserListAdapter(this, userEmails, userKeys)
         users_list_recycler_view.layoutManager = LinearLayoutManager(this)
         users_list_recycler_view.adapter = userListAdapter
 
