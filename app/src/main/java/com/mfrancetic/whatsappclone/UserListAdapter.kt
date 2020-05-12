@@ -7,21 +7,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import kotlinx.android.synthetic.main.activity_main.*
 
 class UserListAdapter(
-    private val context: Context, private val userEmails: MutableList<String>,
-    private val userKeys: MutableList<String>
+    private val context: Context, private val users: MutableList<User>
 ) :
 
     RecyclerView.Adapter<UserListAdapter.ViewHolder>() {
 
     class ViewHolder(
         private val context: Context, itemView: View,
-        private val userEmails: MutableList<String>,
-    private val userKeys: MutableList<String>): RecyclerView.ViewHolder(itemView), View.OnClickListener {
+        private val users: MutableList<User>
+    ) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
         var emailTextView: TextView = itemView.findViewById(R.id.user_email_text_view)
 
@@ -31,8 +28,11 @@ class UserListAdapter(
 
         override fun onClick(v: View?) {
             val goToChatActivityIntent = Intent(context, ChatActivity::class.java)
-            goToChatActivityIntent.putExtra(Constants.USER_KEY, userEmails[adapterPosition])
-            goToChatActivityIntent.putExtra(Constants.USER_KEY_KEY, userKeys[adapterPosition])
+            goToChatActivityIntent.putExtra(Constants.USER_KEY, users[adapterPosition].userEmail)
+            goToChatActivityIntent.putExtra(
+                Constants.USER_KEY_KEY,
+                users[adapterPosition].userUid
+            )
             context.startActivity(goToChatActivityIntent)
         }
     }
@@ -41,17 +41,17 @@ class UserListAdapter(
         val itemView =
             LayoutInflater.from(context).inflate(R.layout.user_list_item, parent, false)
 
-        return ViewHolder(context, itemView, userEmails, userKeys)
+        return ViewHolder(context, itemView, users)
     }
 
     override fun getItemCount(): Int {
-        return userEmails.size
+        return users.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val email = userEmails[position]
+        val user = users[position]
 
         val emailTextView = holder.emailTextView
-        emailTextView.text = email
+        emailTextView.text = user.userEmail
     }
 }

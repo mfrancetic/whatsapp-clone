@@ -19,8 +19,7 @@ import kotlinx.android.synthetic.main.activity_user_list.*
 class UserListActivity : AppCompatActivity() {
 
     private var userListAdapter: UserListAdapter? = null
-    private var userEmails: MutableList<String> = mutableListOf()
-    private var userKeys: MutableList<String> = mutableListOf()
+    private var users: MutableList<User> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,29 +30,31 @@ class UserListActivity : AppCompatActivity() {
     }
 
     private fun getUsersFromDatabase() {
-        val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
+        val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
 
         val database = FirebaseDatabase.getInstance().reference
         database.child(Constants.USERS_TABLE_KEY)
             .addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(p0: DataSnapshot, p1: String?) {
-                    val email = p0.child(Constants.EMAIL_ID_KEY).value as String
-                    if (email != currentUserEmail) {
-                        userEmails.add(email)
-                        userKeys.add(p0.key.toString())
+                    val userUid = p0.key.toString()
+                    val userEmail = p0.child(Constants.EMAIL_ID_KEY).value.toString()
+
+                    if (userUid != currentUserUid) {
+                        users.add(User(p0.key.toString(), userEmail))
                         userListAdapter?.notifyDataSetChanged()
                     }
                 }
 
                 override fun onChildRemoved(p0: DataSnapshot) {
-                    val email = p0.child(Constants.EMAIL_ID_KEY).value as String
-                    if (email != currentUserEmail) {
-                        userEmails.remove(email)
-                        userKeys.remove(p0.key.toString())
-                        userListAdapter?.notifyDataSetChanged()
-                    }
-                    if (userEmails.size < 1) {
-                        println("Empty list")
+                    val userUid = p0.key.toString()
+
+                    if (userUid != currentUserUid) {
+                        for (user in users) {
+                            if (user.userUid == userUid) {
+                                users.remove(user)
+                                userListAdapter?.notifyDataSetChanged()
+                            }
+                        }
                     }
                 }
 
@@ -69,7 +70,7 @@ class UserListActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        userListAdapter = UserListAdapter(this, userEmails, userKeys)
+        userListAdapter = UserListAdapter(this, users)
         users_list_recycler_view.layoutManager = LinearLayoutManager(this)
         users_list_recycler_view.adapter = userListAdapter
 

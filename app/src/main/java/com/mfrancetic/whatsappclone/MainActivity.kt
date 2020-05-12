@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         password2_edit_text.visibility = View.VISIBLE
     }
 
-    private fun addUserToDatabase (user: FirebaseUser?, email: String) {
+    private fun addUserToDatabase(user: FirebaseUser?, email: String) {
         if (user != null) {
             val database = FirebaseDatabase.getInstance().reference
             database.child(Constants.USERS_TABLE_KEY).child(user.uid).child(Constants.EMAIL_ID_KEY)

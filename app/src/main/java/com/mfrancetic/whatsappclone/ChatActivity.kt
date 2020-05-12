@@ -18,12 +18,10 @@ class ChatActivity : AppCompatActivity() {
 
     private var adapter: ChatListAdapter? = null
     private var chatList: MutableList<ChatMessage> = mutableListOf()
-    private var userEmail: String? = ""
-    private var userKey: String? = ""
+    private var recipientEmail: String? = ""
+    private var recipientUid: String? = ""
     private val database = FirebaseDatabase.getInstance().reference
     private val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
-
-    //    private var messageId = UUID.randomUUID().toString()
     private var chatId = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +29,7 @@ class ChatActivity : AppCompatActivity() {
         setContentView(R.layout.activity_chat)
 
         getDataFromIntent()
-        getChatId()
+        findChat()
         setupRecyclerView()
         setButtonOnClickListener()
     }
@@ -50,27 +48,24 @@ class ChatActivity : AppCompatActivity() {
 
     private fun sendMessage(message: String) {
         val createdAt = Calendar.getInstance().time
-        val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
 
-        if (currentUserUid != null && userKey != null && userEmail != null && currentUserEmail != null) {
+        if (currentUserUid != null && recipientUid != null) {
             val messageMap: Map<String, String> = mapOf(
                 Constants.MESSAGE_KEY to message,
                 Constants.CREATED_AT to createdAt.toString(),
                 Constants.FROM_KEY to currentUserUid.toString(),
-                Constants.TO_KEY to userKey.toString()
+                Constants.TO_KEY to recipientUid.toString()
             )
+
+            val chatsTable = database.child(Constants.CHATS_TABLE_KEY).child(chatId)
 
             if (chatId == "") {
                 chatId = UUID.randomUUID().toString()
+                chatsTable.child(Constants.PARTICIPANTS_KEY).child(Constants.PARTICIPANT_1_KEY)
+                    .setValue(currentUserUid)
+                chatsTable.child(Constants.PARTICIPANTS_KEY).child(Constants.PARTICIPANT_2_KEY)
+                    .setValue(recipientUid!!)
             }
-
-            val chatsTable = database.child(Constants.CHATS_TABLE_KEY).child(chatId)
-            chatsTable.child(Constants.PARTICIPANTS_KEY).child(Constants.PARTICIPANT_1_KEY)
-                .setValue(currentUserUid)
-
-            chatsTable.child(Constants.PARTICIPANTS_KEY).child(Constants.PARTICIPANT_2_KEY)
-                .setValue(userKey!!)
-//            chatsTable.child(Constants.PARTICIPANTS_KEY).child(userKey!!).push()
 
             chatsTable
                 .child(Constants.MESSAGES_KEY)
@@ -87,39 +82,38 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun getChatListFromDatabase() {
-        if (currentUserUid != null) {
-            if (chatId != "") {
-                database.child(Constants.CHATS_TABLE_KEY).child(chatId)
-                    .child(Constants.MESSAGES_KEY)
-//                    .orderByChild(Constants.CREATED_AT)
-                    .addChildEventListener(object : ChildEventListener {
-                        override fun onCancelled(p0: DatabaseError) {
-                        }
+        if (chatId != "") {
+            database.child(Constants.CHATS_TABLE_KEY).child(chatId)
+                .child(Constants.MESSAGES_KEY)
+                .orderByChild(Constants.CREATED_AT)
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+                        if (p0.hasChildren()) {
+                            val createdAt = p0.child(Constants.CREATED_AT).value as String
+                            val from = p0.child(Constants.FROM_KEY).value as String
+                            val message = p0.child(Constants.MESSAGE_KEY).value as String
+                            val to = p0.child(Constants.TO_KEY).value as String
 
-                        override fun onChildMoved(p0: DataSnapshot, p1: String?) {
+                            chatList.add(
+                                ChatMessage(from, to, message, createdAt)
+                            )
+                            adapter?.notifyDataSetChanged()
                         }
+                    }
 
-                        override fun onChildChanged(p0: DataSnapshot, p1: String?) {
-                        }
+                    override fun onChildRemoved(p0: DataSnapshot) {
+                    }
 
-                        override fun onChildAdded(p0: DataSnapshot, p1: String?) {
-                            if (p0.hasChildren()) {
-                                val createdAt = p0.child(Constants.CREATED_AT).value as String
-                                val from = p0.child(Constants.FROM_KEY).value as String
-                                val message = p0.child(Constants.MESSAGE_KEY).value as String
-                                val to = p0.child(Constants.TO_KEY).value as String
+                    override fun onCancelled(p0: DatabaseError) {
+                    }
 
-                                chatList.add(
-                                    ChatMessage(from, to, message, createdAt)
-                                )
-                                adapter?.notifyDataSetChanged()
-                            }
-                        }
+                    override fun onChildMoved(p0: DataSnapshot, p1: String?) {
+                    }
 
-                        override fun onChildRemoved(p0: DataSnapshot) {
-                        }
-                    })
-            }
+                    override fun onChildChanged(p0: DataSnapshot, p1: String?) {
+                    }
+
+                })
         }
     }
 
@@ -133,15 +127,30 @@ class ChatActivity : AppCompatActivity() {
 
     private fun getDataFromIntent() {
         if (intent != null) {
-            userEmail = intent.getStringExtra(Constants.USER_KEY)
-            userKey = intent.getStringExtra(Constants.USER_KEY_KEY)
-            title = getString(R.string.chat_with) + " " + userEmail
+            recipientEmail = intent.getStringExtra(Constants.USER_KEY)
+            recipientUid = intent.getStringExtra(Constants.USER_KEY_KEY)
+            title = getString(R.string.chat_with) + " " + recipientEmail
         }
     }
 
-    private fun getChatId() {
+    private fun findChat() {
         database.child(Constants.CHATS_TABLE_KEY)
             .addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+                    if (p0.hasChild(Constants.PARTICIPANTS_KEY)) {
+                        val participants = p0.child(Constants.PARTICIPANTS_KEY)
+                        val participant1 = participants.child(Constants.PARTICIPANT_1_KEY).value
+                        val participant2 = participants.child(Constants.PARTICIPANT_2_KEY).value
+
+                        if (participant1 == recipientUid || participant1 == currentUserUid) {
+                            if (participant2 == recipientUid || participant2 == currentUserUid) {
+                                chatId = p0.key.toString()
+                                getChatListFromDatabase()
+                            }
+                        }
+                    }
+                }
+
                 override fun onCancelled(p0: DatabaseError) {
                 }
 
@@ -149,21 +158,6 @@ class ChatActivity : AppCompatActivity() {
                 }
 
                 override fun onChildChanged(p0: DataSnapshot, p1: String?) {
-                }
-
-                override fun onChildAdded(p0: DataSnapshot, p1: String?) {
-                    if (p0.hasChild(Constants.PARTICIPANTS_KEY)) {
-                        val participants = p0.child(Constants.PARTICIPANTS_KEY)
-                        if (participants.child(Constants.PARTICIPANT_1_KEY).value == userKey ||
-                            participants.child(Constants.PARTICIPANT_1_KEY).value == currentUserUid
-                        ) {
-                            if (participants.child(Constants.PARTICIPANT_2_KEY).value == userKey ||
-                                    participants.child(Constants.PARTICIPANT_2_KEY).value == currentUserUid) {
-                                chatId = p0.key.toString()
-                                getChatListFromDatabase()
-                            }
-                        }
-                    }
                 }
 
                 override fun onChildRemoved(p0: DataSnapshot) {
