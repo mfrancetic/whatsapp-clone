@@ -1,8 +1,10 @@
 package com.mfrancetic.whatsappclone
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.tasks.OnCompleteListener
@@ -41,9 +43,23 @@ class ChatActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.message_empty), Toast.LENGTH_SHORT)
                     .show()
             } else {
+                clearEditText()
+                hideKeyboard()
                 sendMessage(message)
             }
         })
+    }
+
+    private fun hideKeyboard() {
+        val inputMethodManager =
+            baseContext.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val view = if (currentFocus == null) View(this) else currentFocus
+
+        inputMethodManager.hideSoftInputFromWindow(view?.windowToken, 0)
+    }
+
+    private fun clearEditText() {
+        write_message_edit_text.text.clear()
     }
 
     private fun sendMessage(message: String) {
@@ -123,6 +139,7 @@ class ChatActivity : AppCompatActivity() {
 
         val layoutManager = LinearLayoutManager(this)
         chat_recycler_view.layoutManager = layoutManager
+        layoutManager.scrollToPosition(chatList.size - 1)
     }
 
     private fun getDataFromIntent() {
