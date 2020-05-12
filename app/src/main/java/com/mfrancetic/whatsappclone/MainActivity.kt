@@ -1,10 +1,13 @@
 package com.mfrancetic.whatsappclone
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -64,9 +67,10 @@ class MainActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    addUserToDatabase(task.result?.user, email)
                     Toast.makeText(this, getString(R.string.sign_up_success), Toast.LENGTH_SHORT)
                         .show()
-                    goToChatActivity()
+                    goToUserListActivity()
                 } else {
                     Toast.makeText(
                         baseContext, task.exception?.message.toString(),
@@ -82,7 +86,7 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     Toast.makeText(this, getString(R.string.login_success), Toast.LENGTH_SHORT)
                         .show()
-                    goToChatActivity()
+                    goToUserListActivity()
                 } else {
                     Toast.makeText(
                         baseContext, task.exception?.message.toString(),
@@ -106,17 +110,26 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            goToChatActivity()
+            goToUserListActivity()
         }
     }
 
-    private fun goToChatActivity() {
-
+    private fun goToUserListActivity() {
+        val goToUserListActivityIntent = Intent(this, UserListActivity::class.java)
+        startActivity(goToUserListActivityIntent)
     }
 
     private fun setupSignUpView() {
         switch_to_sign_up_login_text_view.text = getString(R.string.switch_to_login)
         sign_up_login_button.text = getString(R.string.sign_up)
         password2_edit_text.visibility = View.VISIBLE
+    }
+
+    private fun addUserToDatabase (user: FirebaseUser?, email: String) {
+        if (user != null) {
+            val database = FirebaseDatabase.getInstance().reference
+            database.child(Constants.USERS_TABLE_KEY).child(user.uid).child(Constants.EMAIL_ID_KEY)
+                .setValue(email)
+        }
     }
 }
