@@ -25,6 +25,7 @@ class UserListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_list)
 
+        title = getString(R.string.user_list)
         setupRecyclerView()
         getUsersFromDatabase()
     }
@@ -101,6 +102,13 @@ class UserListActivity : AppCompatActivity() {
         Toast.makeText(this, getString(R.string.logout_successful), Toast.LENGTH_SHORT)
             .show()
         val goBackToMainActivityIntent = Intent(this, MainActivity::class.java)
+        startActivity(goBackToMainActivityIntent)
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        val goBackToMainActivityIntent = Intent(this, MainActivity::class.java)
+        goBackToMainActivityIntent.putExtra(Constants.GO_BACK_KEY, 1)
         startActivity(goBackToMainActivityIntent)
     }
 }

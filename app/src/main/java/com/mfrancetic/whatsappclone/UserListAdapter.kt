@@ -33,6 +33,7 @@ class UserListAdapter(
                 Constants.USER_KEY_KEY,
                 users[adapterPosition].userUid
             )
+            goToChatActivityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
             context.startActivity(goToChatActivityIntent)
         }
     }

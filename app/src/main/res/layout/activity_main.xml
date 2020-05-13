@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@color/colorInverse"
     android:layout_height="match_parent"
     android:padding="@dimen/padding_default"
     tools:context=".MainActivity">
@@ -13,6 +14,7 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/logo"
         android:src="@mipmap/ic_launcher"
+        android:padding="@dimen/padding_default"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,6 +25,7 @@
         android:layout_height="wrap_content"
         android:autofillHints="@string/email"
         android:hint="@string/email"
+        android:padding="@dimen/padding_small"
         android:inputType="textEmailAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,6 +37,7 @@
         android:layout_height="wrap_content"
         android:autofillHints="@string/password"
         android:hint="@string/password"
+        android:padding="@dimen/padding_small"
         android:inputType="textPassword"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,15 +50,17 @@
         android:autofillHints="@string/repeat_password"
         android:hint="@string/repeat_password"
         android:inputType="textPassword"
+        android:padding="@dimen/padding_small"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/password_edit_text" />
 
     <Button
+        style="@style/ButtonStyle"
         android:id="@+id/sign_up_login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@id/password2_edit_text"
+        app:layout_constraintStart_toStartOf="@id/password_edit_text"
         app:layout_constraintTop_toBottomOf="@id/password2_edit_text"
         tools:text="@string/login" />
 
@@ -63,6 +69,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingLeft="@dimen/padding_small"
+        android:textColor="@color/colorPrimaryDark"
         app:layout_constraintBottom_toBottomOf="@id/sign_up_login_button"
         app:layout_constraintStart_toEndOf="@id/sign_up_login_button"
         app:layout_constraintTop_toTopOf="@id/sign_up_login_button"

@@ -16,5 +16,6 @@ class Constants {
         const val USER_KEY = "user"
         const val EMAIL_ID_KEY = "emailId"
         const val USERS_TABLE_KEY = "users"
+        const val GO_BACK_KEY = "goBack";
     }
 }

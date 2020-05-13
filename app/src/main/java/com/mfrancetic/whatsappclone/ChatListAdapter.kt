@@ -1,11 +1,14 @@
 package com.mfrancetic.whatsappclone
 
 import android.content.Context
-import android.graphics.Color
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -29,13 +32,17 @@ class ChatListAdapter(private val context: Context, private val chatList: List<C
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val chatMessage = chatList[position]
+        val createdAt = DateTimeUtils.formatTime(chatMessage.createdAt)
+
         holder.chatMessageTextView.text = chatMessage.message
-        holder.chatCreatedAtTextView.text = chatMessage.createdAt
+        holder.chatCreatedAtTextView.text = createdAt
 
         if (chatMessage.from == FirebaseAuth.getInstance().currentUser?.uid) {
-            holder.chatMessageTextView.setBackgroundColor(Color.RED)
+            holder.chatMessageTextView.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccent))
+            holder.chatMessageTextView.setTextColor(ContextCompat.getColor(context, R.color.colorInverse))
         } else {
-            holder.chatMessageTextView.setBackgroundColor(Color.GREEN)
+            holder.chatMessageTextView.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimaryLight))
+            holder.chatMessageTextView.setTextColor(ContextCompat.getColor(context, R.color.colorPrimaryText))
         }
     }
 }

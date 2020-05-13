@@ -63,33 +63,33 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendMessage(message: String) {
-        val createdAt = Calendar.getInstance().time
+        val createdAt = DateTimeUtils.getCurrentTime()
 
         if (currentUserUid != null && recipientUid != null) {
             val messageMap: Map<String, String> = mapOf(
                 Constants.MESSAGE_KEY to message,
-                Constants.CREATED_AT to createdAt.toString(),
+                Constants.CREATED_AT to createdAt,
                 Constants.FROM_KEY to currentUserUid.toString(),
                 Constants.TO_KEY to recipientUid.toString()
             )
 
-            val chatsTable = database.child(Constants.CHATS_TABLE_KEY).child(chatId)
+            val chatsTable = database.child(Constants.CHATS_TABLE_KEY)
 
             if (chatId == "") {
                 chatId = UUID.randomUUID().toString()
-                chatsTable.child(Constants.PARTICIPANTS_KEY).child(Constants.PARTICIPANT_1_KEY)
+                chatsTable.child(chatId).child(Constants.PARTICIPANTS_KEY)
+                    .child(Constants.PARTICIPANT_1_KEY)
                     .setValue(currentUserUid)
-                chatsTable.child(Constants.PARTICIPANTS_KEY).child(Constants.PARTICIPANT_2_KEY)
+                chatsTable.child(chatId).child(Constants.PARTICIPANTS_KEY)
+                    .child(Constants.PARTICIPANT_2_KEY)
                     .setValue(recipientUid!!)
+                getChatListFromDatabase()
             }
 
-            chatsTable
+            chatsTable.child(chatId)
                 .child(Constants.MESSAGES_KEY)
                 .push().setValue(messageMap).addOnCompleteListener(OnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Toast.makeText(this, getString(R.string.message_sent), Toast.LENGTH_SHORT)
-                            .show()
-                    } else {
+                    if (!task.isSuccessful) {
                         Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT)
                             .show()
                     }

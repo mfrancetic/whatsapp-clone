@@ -110,12 +110,17 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            goToUserListActivity()
+            if (intent != null && intent.getIntExtra(Constants.GO_BACK_KEY, 0) == 1) {
+                this.finish()
+            } else {
+                goToUserListActivity()
+            }
         }
     }
 
     private fun goToUserListActivity() {
         val goToUserListActivityIntent = Intent(this, UserListActivity::class.java)
+        goToUserListActivityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         startActivity(goToUserListActivityIntent)
     }
 
